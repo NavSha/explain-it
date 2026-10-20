@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Web Text Study</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f6f7f9;
+    --ink: #16181d;
+    --ink-soft: #52575f;
+    --line: #e2e4e8;
+    --accent: #2f5fd6;
+    --accent-soft: #e8edfc;
+    --good: #1a8a5f;
+    --good-soft: #e5f5ee;
+    --risk: #b5460a;
+    --risk-soft: #fbeae0;
+    --forecast: #9aa0ab;
+    --radius: 14px;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15171b;
+      --surface: #1d2025;
+      --ink: #eceef1;
+      --ink-soft: #a7acb5;
+      --line: #2c3036;
+      --accent: #7fa0ff;
+      --accent-soft: #212b45;
+      --good: #4fd3a0;
+      --good-soft: #163428;
+      --risk: #ff9a5c;
+      --risk-soft: #3a2316;
+      --forecast: #6b7078;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171b;
+    --surface: #1d2025;
+    --ink: #eceef1;
+    --ink-soft: #a7acb5;
+    --line: #2c3036;
+    --accent: #7fa0ff;
+    --accent-soft: #212b45;
+    --good: #4fd3a0;
+    --good-soft: #163428;
+    --risk: #ff9a5c;
+    --risk-soft: #3a2316;
+    --forecast: #6b7078;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 32px 20px 80px; }
+  .top-bar { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+  .switch {
+    display: inline-flex; border: 1px solid var(--line); border-radius: 999px;
+    padding: 3px; background: var(--surface); font-size: 13px;
+  }
+  .switch button {
+    border: none; background: transparent; padding: 6px 14px; border-radius: 999px;
+    cursor: pointer; color: var(--ink-soft); font-weight: 600;
+  }
+  .switch button.active { background: var(--accent); color: white; }
+  h1 {
+    font-size: 30px; line-height: 1.25; margin: 10px 0 14px; letter-spacing: -0.01em;
+  }
+  .answer {
+    font-size: 17px; color: var(--ink-soft); max-width: 70ch; margin-bottom: 8px;
+  }
+  .answer strong { color: var(--ink); }
+  .meta-row {
+    display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 36px;
+  }
+  .pill {
+    font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
+    background: var(--surface); color: var(--ink-soft); border: 1px solid var(--line);
+  }
+  .assumptions {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 20px; margin-bottom: 40px; font-size: 14px; color: var(--ink-soft);
+  }
+  .assumptions h3 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink); }
+  .assumptions ul { margin: 0; padding-left: 20px; }
+  .assumptions li { margin-bottom: 4px; }
+  section.block { margin-bottom: 48px; }
+  h2 {
+    font-size: 20px; margin: 0 0 16px; letter-spacing: -0.005em;
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 22px; margin-bottom: 16px;
+  }
+  .bars { display: flex; align-items: flex-end; gap: 18px; height: 180px; padding: 10px 6px 0; }
+  .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end; }
+  .bar { width: 100%; max-width: 64px; border-radius: 6px 6px 0 0; position: relative; }
+  .bar.actual { background: var(--accent); }
+  .bar.forecast { background: transparent; border: 2px dashed var(--forecast); border-bottom: none; }
+  .bar-value { font-family: var(--mono); font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--ink); }
+  .bar-label { font-size: 12px; color: var(--ink-soft); margin-top: 8px; text-align: center; }
+  .bar-label .sub { display: block; font-size: 11px; opacity: 0.8; }
+  .compute-bars { display: flex; align-items: flex-end; gap: 18px; height: 160px; padding: 10px 6px 0; }
+  .cbar { width: 100%; max-width: 64px; border-radius: 6px 6px 0 0; background: var(--accent); }
+  .cbar.baseline { background: var(--good); }
+  .cbar.forecast { background: var(--risk); opacity: 0.55; }
+  .flow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; padding: 12px 0; }
+  .flow .fnode {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; font-size: 13px; text-align: center; min-width: 120px;
+  }
+  .flow .fnode.highlight { border-color: var(--risk); background: var(--risk-soft); color: var(--risk); font-weight: 600; }
+  .flow .arrow { color: var(--ink-soft); font-size: 18px; }
+  .bullets { list-style: none; margin: 0; padding: 0; }
+  .bullets li {
+    padding-left: 22px; position: relative; margin-bottom: 10px; font-size: 15px; color: var(--ink-soft);
+  }
+  .bullets li::before {
+    content: "→"; position: absolute; left: 0; color: var(--accent); font-weight: 700;
+  }
+  .bullets li strong { color: var(--ink); }
+  table.compare { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.compare th, table.compare td {
+    text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top;
+  }
+  table.compare th { color: var(--ink-soft); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .decision-box {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px;
+  }
+  .decision-box legend { font-weight: 700; font-size: 15px; padding: 0 4px; }
+  .decision-tag { font-size: 11px; color: var(--ink-soft); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 10px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line);
+  }
+  .opt:last-child { border-bottom: none; }
+  .opt input { margin-top: 4px; }
+  .opt label { font-size: 14px; }
+  .opt .suggested { color: var(--good); font-weight: 700; font-size: 12px; margin-left: 6px; }
+  .opt .why { color: var(--ink-soft); font-size: 13px; margin-top: 2px; display: block; }
+  .detail { }
+  body:not(.detailed) .detail { display: none; }
+  .sticky-cta {
+    position: sticky; bottom: 16px; display: flex; justify-content: center; margin-top: 30px;
+  }
+  .sticky-cta button {
+    background: var(--accent); color: white; border: none; border-radius: 999px;
+    padding: 12px 22px; font-size: 14px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  }
+  .copybox {
+    margin-top: 14px; font-family: var(--mono); font-size: 12px; background: var(--bg);
+    border: 1px solid var(--line); border-radius: 10px; padding: 12px; white-space: pre-wrap; display: none;
+  }
+  footer {
+    margin-top: 50px; padding-top: 20px; border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--ink-soft);
+  }
+  @media (max-width: 480px) {
+    .bars, .compute-bars { gap: 8px; }
+    h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top-bar">
+    <div class="switch">
+      <button id="btn-simple" class="active" onclick="setMode(false)">Simple</button>
+      <button id="btn-detailed" onclick="setMode(true)">Detailed</button>
+    </div>
+  </div>
+
+  <h1>AI text is taking over the web's training data — that's a problem for model builders, not a verdict on your newsletter</h1>
+
+  <p class="answer">
+    A new study (arXiv 2609.40295, Sep 2026) finds AI's share of web text roughly tripled in two years.
+    Training on that mix now costs up to <strong>3x the compute</strong> of clean human text. That's a real
+    warning about where LLM pretraining is headed. It is <strong>not</strong> a finding about whether
+    AI-assisted newsletters are good or bad for readers — those are different questions. Keep using AI to
+    draft. If anything changes, it's how you differentiate and disclose, not whether you use the tool.
+  </p>
+
+  <div class="meta-row">
+    <span class="pill">Study: arXiv 2609.40295, Sep 2026</span>
+    <span class="pill">800 models trained</span>
+    <span class="pill">Detector: Pangram</span>
+  </div>
+
+  <div class="assumptions">
+    <h3>Assumptions &amp; open questions, up front</h3>
+    <ul>
+      <li>Figures below are as reported by the study (Pangram detector, post quality-filtering). We did not independently re-verify the paper's numbers.</li>
+      <li>"1.6x / 2.1x / 3.0x compute" means compute needed to match human-only training quality — not an absolute cost figure.</li>
+      <li>42% and 51% AI-share are the study's <em>forecasts</em>, not observed data. Treat them as a projection, not a certainty.</li>
+      <li>The study measures general web text and pretraining economics. It does not measure newsletter trust or engagement — that connection is ours to reason through below.</li>
+    </ul>
+  </div>
+
+  <section class="block">
+    <h2>How much of the web is already AI-written?</h2>
+    <div class="card">
+      <div class="bars">
+        <div class="bar-col">
+          <div class="bar-value">10.1%</div>
+          <div class="bar actual" style="height:60px;"></div>
+          <div class="bar-label">~2 yrs ago<span class="sub">(~2024)</span></div>
+        </div>
+        <div class="bar-col">
+          <div class="bar-value">27.5%</div>
+          <div class="bar actual" style="height:163px;"></div>
+          <div class="bar-label">June 2026</div>
+        </div>
+        <div class="bar-col">
+          <div class="bar-value">31.1%</div>
+          <div class="bar actual" style="height:184px;"></div>
+          <div class="bar-label">Aug 2026<span class="sub">latest measured</span></div>
+        </div>
+        <div class="bar-col">
+          <div class="bar-value">42%</div>
+          <div class="bar forecast" style="height:249px;"></div>
+          <div class="bar-label">Forecast<span class="sub">(study projection)</span></div>
+        </div>
+        <div class="bar-col">
+          <div class="bar-value">51%</div>
+          <div class="bar forecast" style="height:302px;"></div>
+          <div class="bar-label">Forecast<span class="sub">(study projection)</span></div>
+        </div>
+      </div>
+    </div>
+    <ul class="bullets">
+      <li><strong>Tripled in two years:</strong> AI's share of filtered web tokens went from roughly 1 in 10 to nearly 1 in 3 — after quality filters already ran.</li>
+      <li><strong>The trend doesn't level off:</strong> the study projects AI text crossing 50% on current trajectory. Solid bars are measured; dashed bars are projected.</li>
+      <li><strong>This is the general web, not newsletters:</strong> none of this is newsletter-specific — it's whatever text lands in large-scale pretraining crawls.</li>
+    </ul>
+  </section>
+
+  <section class="block">
+    <h2>What does that cost model builders?</h2>
+    <div class="card">
+      <div class="compute-bars">
+        <div class="bar-col">
+          <div class="bar-value">1.0x</div>
+          <div class="cbar baseline" style="height:50px;"></div>
+          <div class="bar-label">Human-only<span class="sub">baseline</span></div>
+        </div>
+        <div class="bar-col">
+          <div class="bar-value">1.6x</div>
+          <div class="cbar" style="height:80px;"></div>
+          <div class="bar-label">At 31.1% AI<span class="sub">measured, Aug 2026</span></div>
+        </div>
+        <div class="bar-col">
+          <div class="bar-value">2.1x</div>
+          <div class="cbar forecast" style="height:105px;"></div>
+          <div class="bar-label">At 42% AI<span class="sub">forecast</span></div>
+        </div>
+        <div class="bar-col">
+          <div class="bar-value">3.0x</div>
+          <div class="cbar forecast" style="height:150px;"></div>
+          <div class="bar-label">At 51% AI<span class="sub">forecast</span></div>
+        </div>
+      </div>
+    </div>
+    <ul class="bullets">
+      <li><strong>Compute penalty scales with AI share:</strong> today's mix already costs 1.6x the compute of human-only text. Forecast shares push that to 2–3x.</li>
+      <li><strong>Repeating beats adding:</strong> re-using the same human text for multiple epochs outperforms diluting the corpus with fresh AI text. Synthetic volume isn't a free substitute for human volume.</li>
+      <li><strong>Not a guess — 800 trained models:</strong> this is an empirical scaling study, not an extrapolation from a handful of runs.</li>
+    </ul>
+  </section>
+
+  <section class="block">
+    <h2>Why doesn't quality filtering just remove the AI text?</h2>
+    <div class="card">
+      <div class="flow step-row">
+        <div class="fnode">Raw web crawl</div>
+        <div class="arrow">→</div>
+        <div class="fnode highlight">Quality filter<br><span style="font-weight:400;">favors polished, well-structured text</span></div>
+        <div class="arrow">→</div>
+        <div class="fnode">Training corpus<br><span style="font-size:12px;opacity:0.7;">AI share rises, not falls</span></div>
+      </div>
+    </div>
+    <ul class="bullets">
+      <li><strong>Filters select <em>for</em> AI-like traits, not against them:</strong> "quality" heuristics (fluency, structure, on-topic coherence) are exactly the traits AI writing has more consistently than average web text.</li>
+      <li><strong>That makes it self-reinforcing:</strong> each filtering pass is reported to skew the surviving mix further toward AI text — part of why the share keeps climbing even after filtering.</li>
+    </ul>
+  </section>
+
+  <section class="block">
+    <h2>Does this mean I should stop using AI to draft my newsletter?</h2>
+    <div class="card">
+      <table class="compare">
+        <tr><th>What the study measured</th><th>What actually affects your newsletter</th></tr>
+        <tr>
+          <td>Whether future <strong>foundation models</strong> get costlier/worse to train as web text fills with AI output</td>
+          <td>Whether <strong>your readers</strong> trust, open, and value what you send them</td>
+        </tr>
+        <tr>
+          <td>Compute economics of pretraining corpora, measured in aggregate across the open web</td>
+          <td>Editorial judgment: accuracy, a distinct point of view, timeliness, voice</td>
+        </tr>
+        <tr>
+          <td>A macro trend driven by millions of publishers, chatbots, and content farms combined</td>
+          <td>A single newsletter's drafting process — a rounding error against the macro trend</td>
+        </tr>
+      </table>
+    </div>
+    <ul class="bullets">
+      <li><strong>Different problem, different fix:</strong> the paper is about pretraining data economics. It says nothing about whether AI-assisted drafting serves readers well.</li>
+      <li><strong>Your real levers are editorial, not data-hygiene:</strong> fact-check what the AI drafts, keep a voice readers recognize, and be clear about your process if asked.</li>
+      <li><strong>The one honest link:</strong> every AI-drafted newsletter does add to the web's AI-text share. One newsletter's contribution to a web-scale trend is negligible — worth knowing, not worth over-weighting.</li>
+    </ul>
+  </section>
+
+  <section class="block">
+    <h2>What should you actually do?</h2>
+    <form id="decisions">
+      <fieldset class="decision-box" data-decision="newsletter-approach">
+        <div class="decision-tag">Decision 1 of 1</div>
+        <legend>How should this study change your newsletter's drafting process?</legend>
+
+        <div class="opt">
+          <input type="radio" name="newsletter-approach" id="opt-a" value="Keep using AI to draft, unchanged">
+          <label for="opt-a">Keep using AI to draft, unchanged
+            <span class="why">The study doesn't measure newsletter quality or reader trust — no evidence here that current practice is harming readers.</span>
+          </label>
+        </div>
+
+        <div class="opt" data-suggested="true">
+          <input type="radio" name="newsletter-approach" id="opt-b" value="Keep using AI to draft, add a human edit pass and light disclosure" checked>
+          <label for="opt-b">Keep using AI to draft, add a human edit pass + light disclosure <span class="suggested">Suggested</span>
+            <span class="why">Keeps your speed, while hedging the one real adjacent risk: reader-perceived sameness, as AI content volume rises generally. The compute-cost finding isn't yours to solve.</span>
+          </label>
+        </div>
+
+        <div class="opt">
+          <input type="radio" name="newsletter-approach" id="opt-c" value="Shift to human-first drafting, AI for research/editing only">
+          <label for="opt-c">Shift to human-first drafting, AI for research/editing only
+            <span class="why">Reasonable if your differentiation strategy depends on "visibly human" as a brand signal — a business choice, not something the study requires.</span>
+          </label>
+        </div>
+
+        <div class="opt">
+          <input type="radio" name="newsletter-approach" id="opt-d" value="Stop using AI for drafting entirely">
+          <label for="opt-d">Stop using AI for drafting entirely
+            <span class="why">Not supported by this study specifically — it says nothing about AI-assisted writing being lower quality or harmful to readers.</span>
+          </label>
+        </div>
+      </fieldset>
+    </form>
+    <div class="sticky-cta">
+      <button onclick="copyAnswers()">Copy my answer</button>
+    </div>
+    <div class="copybox" id="copybox"></div>
+  </section>
+
+  <section class="block detail">
+    <h2>What do we still not know?</h2>
+    <div class="card">
+      <table class="compare">
+        <tr><th>Open question</th><th>Why it matters</th></tr>
+        <tr><td>Detector reliability on short, opinionated newsletter writing</td><td>Pangram's reported accuracy covers general web text, not this genre specifically</td></tr>
+        <tr><td>Whether 42% / 51% forecasts actually happen</td><td>They're projections. The real rate depends on how publishers and detectors react</td></tr>
+        <tr><td>Reader sensitivity to AI-vs-human drafting</td><td>The study is silent on whether your subscribers care, given good output quality</td></tr>
+        <tr><td>Generalization of the compute multipliers</td><td>Figures come from one filtering/training setup. Other pipelines may differ</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="block detail">
+    <h2>What should you do next?</h2>
+    <div class="card">
+      <div class="flow step-row">
+        <div class="fnode">1. Add a one-line process note<br><span style="font-size:12px;opacity:0.7;">e.g. "drafted with AI, edited by me"</span></div>
+        <div class="arrow">→</div>
+        <div class="fnode">2. Re-check in 6–12 months<br><span style="font-size:12px;opacity:0.7;">once forecasts resolve or don't</span></div>
+        <div class="arrow">→</div>
+        <div class="fnode">3. Invest in voice &amp; sourcing<br><span style="font-size:12px;opacity:0.7;">the actual differentiation lever</span></div>
+      </div>
+    </div>
+    <p style="color:var(--ink-soft);font-size:14px;">These are small, low-cost next steps, not urgent fixes — nothing here says current practice is broken.</p>
+  </section>
+
+  <footer>
+    <strong>Sources:</strong> arXiv 2609.40295 (Sep 2026) — figures as summarized by the user; not independently re-verified against the paper.<br>
+    Generated 2026-10-14.
+  </footer>
+
+</div>
+
+<script>
+  function setMode(detailed) {
+    document.body.classList.toggle('detailed', detailed);
+    document.getElementById('btn-simple').classList.toggle('active', !detailed);
+    document.getElementById('btn-detailed').classList.toggle('active', detailed);
+  }
+
+  function copyAnswers() {
+    const form = document.getElementById('decisions');
+    const fieldsets = form.querySelectorAll('fieldset[data-decision]');
+    let lines = [];
+    fieldsets.forEach((fs, i) => {
+      const legend = fs.querySelector('legend').textContent.trim();
+      const checked = fs.querySelector('input:checked');
+      const value = checked ? checked.value : '(no answer)';
+      lines.push('Decision ' + (i + 1) + ': ' + legend + ' → ' + value);
+    });
+    const text = lines.join('\n');
+    const box = document.getElementById('copybox');
+    box.textContent = text;
+    box.style.display = 'block';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(() => {});
+    }
+  }
+</script>
+
+</body>
+</html>

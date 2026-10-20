@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What X Rewards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@600;800&family=Atkinson+Hyperlegible+Next:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F5F7FA; --surface:#FFFFFF; --ink:#141C26; --muted:#56616E; --line:#DCE2EA;
+  --accent:#2550D9; --accent-soft:#E3EAFC;
+  --good:#17805A; --good-soft:#DDF3EA; --bad:#B8402A; --bad-soft:#F8E4DE; --warn:#9A6A00;
+  --display:"Schibsted Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible Next","Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F151C; --surface:#161E28; --ink:#E7ECF2; --muted:#9AA6B4; --line:#283342;
+    --accent:#7C9BFF; --accent-soft:#1D2A4D;
+    --good:#4CC39A; --good-soft:#12352A; --bad:#F08A72; --bad-soft:#3A1E18; --warn:#E3B341;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F151C; --surface:#161E28; --ink:#E7ECF2; --muted:#9AA6B4; --line:#283342;
+  --accent:#7C9BFF; --accent-soft:#1D2A4D;
+  --good:#4CC39A; --good-soft:#12352A; --bad:#F08A72; --bad-soft:#3A1E18; --warn:#E3B341;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--body);margin:0}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:28px 72px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.2;margin:0}
+h1{font-size:clamp(1.7rem,4.6vw,2.4rem);font-weight:800;letter-spacing:-.01em}
+h2{font-size:1.35rem;font-weight:800}
+h3{font-size:1.02rem;font-weight:600}
+p{margin:0}
+.kicker{font:600 .74rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.topbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:22px}
+.switch{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface)}
+.switch button{font:600 .82rem var(--body);border:0;background:transparent;color:var(--muted);padding:6px 14px;cursor:pointer}
+.switch button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.switch button:focus-visible,.btn:focus-visible,label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.answer{margin-top:14px;font-size:1.08rem;max-width:65ch}
+.answer b{color:var(--accent)}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-top:22px}
+.box h3{margin-bottom:8px}
+.box ul{margin:0;padding-left:1.1rem;display:grid;gap:4px}
+section{margin-top:44px;padding-top:28px;border-top:1px solid var(--line)}
+section > .lead{margin-top:8px;font-weight:600;max-width:65ch}
+figure{margin:18px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto}
+figcaption{font-size:.84rem;color:var(--muted);margin-top:10px}
+.means{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:8px}
+.means li{padding-left:16px;border-left:3px solid var(--accent-soft)}
+.means b{color:var(--ink)}
+code,.mono{font-family:var(--mono);font-size:.86em}
+/* flow */
+.flow{display:grid;gap:6px}
+.step{display:grid;grid-template-columns:2.2rem 1fr;gap:10px;align-items:start;padding:10px 12px;border-radius:8px;background:var(--bg)}
+.step .n{font:600 .8rem var(--mono);color:var(--accent);padding-top:2px}
+.step.hot{background:var(--accent-soft)}
+.step small{display:block;color:var(--muted);font-size:.84rem}
+.arrow{color:var(--muted);text-align:center;font-size:.9rem;line-height:1}
+/* bars */
+.bars{display:grid;gap:7px}
+.bar{display:grid;grid-template-columns:minmax(7.5rem,10rem) 1fr 3.4rem;gap:10px;align-items:center;font-size:.9rem}
+.track{height:14px;background:var(--bg);border-radius:4px;overflow:hidden}
+.fill{height:100%;background:var(--accent);border-radius:4px}
+.fill.neg{background:var(--bad)}
+.fill.dim{background:var(--muted);opacity:.55}
+.val{font:600 .84rem var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.chart-title{font:600 .74rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:2px 0 10px}
+.chart-title + .bars{margin-bottom:6px}
+.gap{height:16px}
+/* timeline */
+.tl svg{width:100%;height:auto;display:block;min-width:520px}
+/* reply diagram */
+.who{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.card{border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--bg)}
+.pill{display:inline-block;font:600 .74rem var(--mono);padding:2px 8px;border-radius:999px}
+.pill.yes{background:var(--good-soft);color:var(--good)}
+.pill.no{background:var(--bad-soft);color:var(--bad)}
+/* table */
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:.92rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 .74rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+/* decisions */
+fieldset{margin:20px 0 0;border:1px solid var(--accent);border-radius:10px;padding:14px 16px;background:var(--surface)}
+legend{font:600 .78rem var(--mono);color:var(--accent);padding:0 6px;letter-spacing:.04em}
+fieldset .q{font-weight:700;margin-bottom:8px}
+fieldset label{display:flex;gap:10px;align-items:flex-start;padding:7px 8px;border-radius:6px;cursor:pointer}
+fieldset label:hover{background:var(--bg)}
+fieldset input{margin-top:5px;accent-color:var(--accent)}
+.sug{font:600 .7rem var(--mono);color:var(--good);background:var(--good-soft);padding:1px 7px;border-radius:999px;margin-left:6px;white-space:nowrap}
+.why{font-size:.86rem;color:var(--muted);margin-top:6px}
+.sticky{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.btn{font:700 .86rem var(--body);border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:999px;padding:9px 16px;cursor:pointer;box-shadow:0 4px 14px rgba(20,28,38,.14)}
+.btn.ghost{background:var(--surface);color:var(--accent)}
+#copybox{display:none;margin-top:10px;width:100%;min-height:110px;font:.84rem var(--mono);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px}
+body:not(.detailed) .detail{display:none}
+.detail{margin-top:14px;font-size:.9rem}
+.detail .param{font:.8rem var(--mono);color:var(--muted)}
+footer{margin-top:52px;padding-top:20px;border-top:1px solid var(--line);font-size:.86rem;color:var(--muted)}
+footer ul{padding-left:1.1rem;margin:8px 0 0;display:grid;gap:4px}
+a{color:var(--accent)}
+@media (max-width:480px){.bar{grid-template-columns:6.8rem 1fr 3rem;font-size:.84rem}}
+@media (prefers-reduced-motion:no-preference){.fill{transition:width .4s ease}}
+</style>
+
+<div class="wrap">
+  <div class="topbar">
+    <span class="kicker">X For You algorithm · read from the open-source code · 14 Oct 2026</span>
+    <div class="switch" role="group" aria-label="Detail level">
+      <button id="simpleBtn" type="button" aria-pressed="true">Simple</button>
+      <button id="detailBtn" type="button" aria-pressed="false">Detailed</button>
+    </div>
+  </div>
+
+  <h1>Replies and shares move your post on X. Likes barely do.</h1>
+  <p class="answer">X guesses what each person will do with your post, then adds up those guesses. A <b>reply, quote or shared link</b> counts many times more than a like. A <b>mute or report</b> counts hard against you. Small accounts get a test slot in the <b>first 2 hours</b>. Decide three things below: when you post, how often, and where you reply.</p>
+
+  <div class="box">
+    <h3>Before you read: what we assumed</h3>
+    <ul>
+      <li>The numbers come from the default values in X's public code. X says a scheduled job keeps them equal to what runs live.</li>
+      <li>A weight multiplies a <em>guess</em> (how likely a person is to reply), not a count of replies. So "1 reply = 7.5 likes" is not literally true.</li>
+      <li>Some rules are not public (some spam rules and some prompts). X also runs tests on part of its users.</li>
+    </ul>
+  </div>
+
+  <!-- Section 1 -->
+  <section id="how">
+    <span class="kicker">1 · The path of one post</span>
+    <h2>How does X decide what to show?</h2>
+    <p class="lead">It collects posts, removes old and unwanted ones, scores the rest, then removes unsafe ones.</p>
+    <figure>
+      <div class="flow">
+        <div class="step"><span class="n">01</span><div><b>Collect</b><small>Posts from people you follow, plus posts a model thinks you will like</small></div></div>
+        <div class="arrow">↓</div>
+        <div class="step"><span class="n">02</span><div><b>Remove</b><small>Posts older than 48 hours, posts you already saw, muted words and accounts</small></div></div>
+        <div class="arrow">↓</div>
+        <div class="step hot"><span class="n">03</span><div><b>Score</b><small>Guess each action (reply, like, mute…), multiply by its weight, add them up</small></div></div>
+        <div class="arrow">↓</div>
+        <div class="step"><span class="n">04</span><div><b>Adjust</b><small>Lower your 2nd and 3rd post in a row, lower strangers' posts, lift new small accounts</small></div></div>
+        <div class="arrow">↓</div>
+        <div class="step"><span class="n">05</span><div><b>Check safety</b><small>Drop spam and unsafe posts, then show the feed</small></div></div>
+      </div>
+      <figcaption>Steps 03 and 04 are where you can win. The next sections are about them.</figcaption>
+    </figure>
+    <ul class="means">
+      <li><b>Every post gets 48 hours.</b> After that, it can't show up in For You at all.</li>
+      <li><b>The score is personal.</b> The same post scores differently for each viewer, based on what that viewer did before.</li>
+    </ul>
+  </section>
+
+  <!-- Section 2 -->
+  <section id="weights">
+    <span class="kicker">2 · The weights</span>
+    <h2>Which actions count most?</h2>
+    <p class="lead">Copying your link counts most. Replies, quotes and DM shares come next. A like is worth 0.66.</p>
+    <figure>
+      <p class="chart-title">Positive actions · weight per predicted action (bar length to scale, max 20)</p>
+      <div class="bars">
+        <div class="bar"><span>Share via copy link</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="val">20</span></div>
+        <div class="bar"><span>Reply</span><div class="track"><div class="fill" style="width:25%"></div></div><span class="val">5</span></div>
+        <div class="bar"><span>Quote</span><div class="track"><div class="fill" style="width:25%"></div></div><span class="val">5</span></div>
+        <div class="bar"><span>Share via DM</span><div class="track"><div class="fill" style="width:25%"></div></div><span class="val">5</span></div>
+        <div class="bar"><span>Follow you</span><div class="track"><div class="fill" style="width:20%"></div></div><span class="val">4</span></div>
+        <div class="bar"><span>Share</span><div class="track"><div class="fill" style="width:10%"></div></div><span class="val">2</span></div>
+        <div class="bar"><span>Repost</span><div class="track"><div class="fill" style="width:5%"></div></div><span class="val">1</span></div>
+        <div class="bar"><span>Like</span><div class="track"><div class="fill dim" style="width:3.3%"></div></div><span class="val">0.66</span></div>
+        <div class="bar"><span>Open a link</span><div class="track"><div class="fill dim" style="width:1%"></div></div><span class="val">0.2</span></div>
+      </div>
+      <div class="gap"></div>
+      <p class="chart-title">Negative actions · weight per predicted action (to scale, max 234)</p>
+      <div class="bars">
+        <div class="bar"><span>Report</span><div class="track"><div class="fill neg" style="width:100%"></div></div><span class="val">−234</span></div>
+        <div class="bar"><span>Mute you</span><div class="track"><div class="fill neg" style="width:25.1%"></div></div><span class="val">−59</span></div>
+        <div class="bar"><span>Not interested</span><div class="track"><div class="fill neg" style="width:22.3%"></div></div><span class="val">−52</span></div>
+        <div class="bar"><span>Block you</span><div class="track"><div class="fill neg" style="width:13.3%"></div></div><span class="val">−31</span></div>
+      </div>
+      <figcaption>Two scales: the negative chart is drawn against 234, the positive one against 20. Rare actions get big weights so they still affect the score.</figcaption>
+    </figure>
+    <ul class="means">
+      <li><b>Write posts people answer or send to a friend.</b> A question, a hot take or a useful link does more than a nice line people only like.</li>
+      <li><b>Bait costs you.</b> One post that makes people mute you can undo many good ones.</li>
+    </ul>
+    <div class="detail">
+      <p>Formula: <code>Final Score = Σ (weight × P(action))</code>, in <code>xai-value-model/scoring.rs</code>.</p>
+      <p class="param">rust_home_mixer_share_via_copy_link_weight 20.0 · reply_weight 5.0 · quote_weight 5.0 · share_via_dm_weight 5.0 · follow_author_weight 4.0 · share_weight 2.0 · retweet_weight 1.0 · favorite_weight 0.66 · click_weight 0.3 · open_link_weight 0.2 · dwell_weight 0.05 · video_open_weight 0.02 · vqv_weight 0.0 · report_weight −234.0 · mute_author_weight −58.8 · not_interested_weight −52.272 · block_author_weight −31.2 · not_dwelled_weight −0.02 (home-mixer/params/param.rs)</p>
+    </div>
+  </section>
+
+  <!-- Section 3 -->
+  <section id="first-hours">
+    <span class="kicker">3 · The small-account slot</span>
+    <h2>Is there a boost for small accounts?</h2>
+    <p class="lead">Yes. A new post can get one test slot in a stranger's feed, but only in its first 2 hours.</p>
+    <figure class="tl">
+      <svg viewBox="0 0 640 150" role="img" aria-label="Timeline of 48 hours. The first 2 hours are the small-account test window.">
+        <rect x="20" y="58" width="600" height="22" rx="4" fill="var(--bg)" stroke="var(--line)"/>
+        <rect x="20" y="58" width="25" height="22" rx="4" fill="var(--accent)"/>
+        <line x1="620" y1="50" x2="620" y2="90" stroke="var(--bad)" stroke-width="2"/>
+        <text x="20" y="44" font-family="JetBrains Mono, monospace" font-size="12" fill="var(--accent)">0–2 h: test slot</text>
+        <text x="620" y="40" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" fill="var(--bad)">48 h: removed from For You</text>
+        <text x="20" y="104" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--muted)">0 h</text>
+        <text x="170" y="104" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--muted)">12 h</text>
+        <text x="320" y="104" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--muted)">24 h</text>
+        <text x="470" y="104" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--muted)">36 h</text>
+        <text x="20" y="132" font-family="Atkinson Hyperlegible Next, sans-serif" font-size="13" fill="var(--ink)">To scale: the test window is 1/24 of a post's life.</text>
+      </svg>
+      <figcaption>Who qualifies: an original post (not a reply or repost), under 2 hours old, under 200 views, from an account with 50,000 followers or fewer.</figcaption>
+    </figure>
+    <ul class="means">
+      <li><b>Stay online after you post.</b> X picks between eligible posts by their like rate on early views. Its starting guess is about 1.5%.</li>
+      <li><b>The slot is about position 15 in the feed.</b> It's a real chance to reach people who don't follow you.</li>
+    </ul>
+    <fieldset data-decision="timing">
+      <legend>Decision 1 of 3</legend>
+      <p class="q">When will you post?</p>
+      <label><input type="radio" name="timing" value="When my audience is online, and I stay 2 hours to reply" data-suggested checked> <span>When my audience is online, and I stay 2 hours to reply<span class="sug">Suggested</span></span></label>
+      <label><input type="radio" name="timing" value="Schedule posts and check later"> <span>Schedule posts and check later</span></label>
+      <p class="why">Early replies and likes decide if the post wins the test slot.</p>
+    </fieldset>
+    <div class="detail"><p class="param">ColdStartImpressionThreshold 200 · ColdStartMaxPostAgeSecs 7200 · ColdStartFollowerCap 50000 · ColdStartSlotMin/Max 15/16 · Thompson sampling on, Beta(0.75, 49.25) prior (home-mixer/scorers/author_cold_start.rs). The code buckets viewers into test groups, so not every viewer gets this slot.</p></div>
+  </section>
+
+  <!-- Section 4 -->
+  <section id="replies">
+    <span class="kicker">4 · Replies and mutual follows</span>
+    <h2>Do my replies reach new people?</h2>
+    <p class="lead">Rarely. A reply shows in For You only to people who follow both you and the person you replied to.</p>
+    <figure>
+      <div class="who">
+        <div class="card"><span class="pill yes">sees it</span><p style="margin-top:8px">Follows <b>you</b> and <b>@them</b></p></div>
+        <div class="card"><span class="pill no">does not</span><p style="margin-top:8px">Follows <b>@them</b> only</p></div>
+        <div class="card"><span class="pill no">does not</span><p style="margin-top:8px">Follows <b>you</b> only</p></div>
+      </div>
+      <figcaption>You reply to @them. Who sees your reply in For You? (People can still see it on the post page itself.)</figcaption>
+    </figure>
+    <ul class="means">
+      <li><b>Mutual follows are the real prize.</b> For original posts from someone a viewer follows back, the reply weight goes from 5 to 20.</li>
+      <li><b>So use replies to make friends, and original posts to reach strangers.</b></li>
+    </ul>
+    <fieldset data-decision="replies">
+      <legend>Decision 2 of 3</legend>
+      <p class="q">Where will you spend your replies?</p>
+      <label><input type="radio" name="replies" value="On builders my size who may follow back" data-suggested checked> <span>On builders my size who may follow back<span class="sug">Suggested</span></span></label>
+      <label><input type="radio" name="replies" value="On the biggest accounts, to get seen"> <span>On the biggest accounts, to get seen</span></label>
+      <p class="why">A mutual follow raises the weight of every future original post you make, for that person.</p>
+    </fieldset>
+    <div class="detail"><p class="param">OONRetweetReplyFilter removes replies and reposts from accounts the viewer does not follow. SelfReplyChainFilter keeps a reply only if the viewer follows the account it is aimed at. BidirectionalFollowReplyWeightBoost 15.0 (5 → 20), originals only; set to 15 on 24 Jul 2026 after an A/B test (docs/BIDIRECTIONAL_BOOST_CHANGE.md).</p></div>
+  </section>
+
+  <!-- Section 5 -->
+  <section id="frequency">
+    <span class="kicker">5 · Posting in a row</span>
+    <h2>What happens if I post a lot?</h2>
+    <p class="lead">Each extra post a person sees from you in one visit is worth less, down to a quarter.</p>
+    <figure>
+      <p class="chart-title">Score kept by your Nth post in one feed visit (to scale)</p>
+      <div class="bars">
+        <div class="bar"><span>1st post</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="val">100%</span></div>
+        <div class="bar"><span>2nd post</span><div class="track"><div class="fill" style="width:62.5%"></div></div><span class="val">63%</span></div>
+        <div class="bar"><span>3rd post</span><div class="track"><div class="fill" style="width:43.75%"></div></div><span class="val">44%</span></div>
+        <div class="bar"><span>4th post</span><div class="track"><div class="fill" style="width:34.4%"></div></div><span class="val">34%</span></div>
+        <div class="bar"><span>Floor</span><div class="track"><div class="fill dim" style="width:25%"></div></div><span class="val">25%</span></div>
+      </div>
+      <figcaption>Posts from accounts the viewer does not follow also keep only 75% of their score.</figcaption>
+    </figure>
+    <ul class="means">
+      <li><b>Bursts compete with themselves.</b> Five posts in an hour mostly fight each other for the same viewers.</li>
+      <li><b>Spread posts across the day,</b> and put your best idea in your best post.</li>
+    </ul>
+    <fieldset data-decision="frequency">
+      <legend>Decision 3 of 3</legend>
+      <p class="q">How many original posts a day?</p>
+      <label><input type="radio" name="frequency" value="1–2 strong posts, spread out" data-suggested checked> <span>1–2 strong posts, spread out<span class="sug">Suggested</span></span></label>
+      <label><input type="radio" name="frequency" value="3–5 posts"> <span>3–5 posts</span></label>
+      <label><input type="radio" name="frequency" value="As many as I can"> <span>As many as I can</span></label>
+      <p class="why">Fewer posts each get a full test slot and full score. More posts split both.</p>
+    </fieldset>
+    <div class="detail"><p class="param">AuthorDiversityDecay 0.5, AuthorDiversityFloor 0.25: multiplier = (1 − 0.25) × 0.5ⁿ + 0.25. OonWeightFactor 0.75 (vm-ranker/params.rs).</p></div>
+  </section>
+
+  <!-- Section 6 -->
+  <section id="myths">
+    <span class="kicker">6 · Myths</span>
+    <h2>Which popular tips does the code not support?</h2>
+    <p class="lead">Links, Premium and video have no special rule in the scoring code.</p>
+    <figure>
+      <table>
+        <thead><tr><th>Tip you hear</th><th>What the code shows</th></tr></thead>
+        <tbody>
+          <tr><td>"Links kill your reach"</td><td>No link penalty found. Opening a link has a low weight (0.2), so links just don't help much.</td></tr>
+          <tr><td>"Premium gets a boost"</td><td>No Premium multiplier in the scoring code. Premium may still feed into the model in ways the code doesn't show.</td></tr>
+          <tr><td>"Video gets pushed"</td><td>The video-view weight is 0 right now. Videos under 10 seconds don't count as video views.</td></tr>
+          <tr><td>"1 report cancels 468 likes"</td><td>X says this is wrong: weights multiply guesses, and reports are more than 1,000× rarer than likes.</td></tr>
+        </tbody>
+      </table>
+    </figure>
+    <ul class="means">
+      <li><b>Spend energy on what people do with your post,</b> not on format tricks.</li>
+      <li><b>Check X's "Under the Hood" page</b> to see if any label limits your account.</li>
+    </ul>
+  </section>
+
+  <section id="unknown">
+    <span class="kicker">Limits</span>
+    <h2>What we still do not know</h2>
+    <ul class="means">
+      <li><b>Live values can differ for some users.</b> X runs tests, and the code shows test groups.</li>
+      <li><b>The model's inputs are not fully visible.</b> Things like Premium status may matter inside the model.</li>
+      <li><b>Some spam rules are hidden</b> on purpose, to stop people gaming them.</li>
+    </ul>
+  </section>
+
+  <section id="next">
+    <span class="kicker">Next</span>
+    <h2>Next steps</h2>
+    <ul class="means">
+      <li><b>Answer the 3 decisions</b> and press "Copy my answers".</li>
+      <li><b>Try it for two weeks:</b> fewer, stronger posts; stay 2 hours after each; reply to builders your size.</li>
+      <li><b>Compare</b> views and new followers with the two weeks before.</li>
+    </ul>
+    <textarea id="copybox" readonly aria-label="Your answers"></textarea>
+  </section>
+
+  <footer>
+    Sources, read 14 Oct 2026:
+    <ul>
+      <li><a href="https://github.com/xai-org/x-algorithm">github.com/xai-org/x-algorithm</a> (commit 17c96bf, 14 Oct 2026): README, home-mixer/params/param.rs, xai-value-model/scoring.rs, vm-ranker/params.rs, home-mixer/scorers/author_cold_start.rs, home-mixer/filters/, docs/BIDIRECTIONAL_BOOST_CHANGE.md</li>
+      <li>X "Under the Hood" tool: <a href="https://x.com/i/jf/under_the_hood">x.com/i/jf/under_the_hood</a></li>
+    </ul>
+  </footer>
+</div>
+
+<div class="sticky">
+  <button class="btn ghost" id="nextBtn" type="button">3 to answer</button>
+  <button class="btn" id="copyBtn" type="button">Copy my answers</button>
+</div>
+
+<script>
+(function(){
+  var body=document.body, s=document.getElementById('simpleBtn'), d=document.getElementById('detailBtn');
+  function mode(det){body.classList.toggle('detailed',det);s.setAttribute('aria-pressed',!det);d.setAttribute('aria-pressed',det);try{localStorage.setItem('xalgo-mode',det?'d':'s')}catch(e){}}
+  s.onclick=function(){mode(false)}; d.onclick=function(){mode(true)};
+  try{if(localStorage.getItem('xalgo-mode')==='d')mode(true)}catch(e){}
+
+  var sets=[].slice.call(document.querySelectorAll('fieldset[data-decision]'));
+  var touched={};
+  function openCount(){return sets.filter(function(f){return !touched[f.dataset.decision]}).length}
+  function refresh(){var n=openCount();document.getElementById('nextBtn').textContent=n?n+' to answer':'All answered'}
+  sets.forEach(function(f){f.addEventListener('change',function(){touched[f.dataset.decision]=true;refresh()})});
+  document.getElementById('nextBtn').onclick=function(){
+    var f=sets.find(function(x){return !touched[x.dataset.decision]})||sets[0];
+    f.scrollIntoView({behavior:'smooth',block:'center'});
+  };
+  document.getElementById('copyBtn').onclick=function(){
+    var text=sets.map(function(f,i){
+      var q=f.querySelector('.q').textContent, c=f.querySelector('input:checked');
+      return 'Decision '+(i+1)+': '+q+' → '+(c?c.value:'(no answer)');
+    }).join('\n');
+    var box=document.getElementById('copybox');
+    function show(){box.style.display='block';box.value=text;box.focus();box.select()}
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){document.getElementById('copyBtn').textContent='Copied'},show);
+    } else show();
+  };
+  refresh();
+})();
+</script>

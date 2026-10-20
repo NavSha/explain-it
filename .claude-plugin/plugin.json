@@ -1,0 +1,12 @@
+{
+  "name": "explain-it",
+  "version": "1.0.0",
+  "description": "Turn research, plans, comparisons and results into one diagram-first, plain-English HTML page you can read fast and decide on.",
+  "author": {
+    "name": "Navneet",
+    "url": "https://github.com/NavSha"
+  },
+  "homepage": "https://github.com/NavSha/explain-it",
+  "license": "MIT",
+  "keywords": ["skill", "explain", "html", "diagrams", "plain-english", "karpathy"]
+}
